@@ -107,7 +107,7 @@ class _StreamScreenState extends State<StreamScreen> {
                                   ),
                         );
                       } else {
-                        return const CircularProgressIndicator();
+                        return const SizedBox.shrink();
                       }
                     },
                   );
