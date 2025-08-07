@@ -34,4 +34,10 @@ class TodoController {
     todos.remove(todoData);
     todoDataStream.add(todos);
   }
+
+  void update(TodoEntities todoData) {
+    int index = todos.indexWhere((element) => element.id == todoData.id);
+    todos[index] = todoData;
+    todoDataStream.add(todos);
+  }
 }

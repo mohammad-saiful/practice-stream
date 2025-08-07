@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
 import 'package:practice_stream/features/stream/presentation/controller/todo_controller.dart';
+import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
 
 class StreamScreen extends StatefulWidget {
   const StreamScreen({super.key});
@@ -23,6 +24,18 @@ class _StreamScreenState extends State<StreamScreen> {
     });
   }
 
+  void addTodo(TodoEntities todoData) {
+    _controller.add(todoData);
+  }
+
+  void updateTodo(TodoEntities todoData) {
+    _controller.update(todoData);
+  }
+
+  void deleteTodo(TodoEntities todoData) {
+    _controller.delete(todoData);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,8 +50,7 @@ class _StreamScreenState extends State<StreamScreen> {
               if (snapshot.hasData) {
                 if (snapshot.data == Status.initial) {
                   return const Text('No Data');
-                }
-               else if (snapshot.data == Status.loading) {
+                } else if (snapshot.data == Status.loading) {
                   return SizedBox(
                     height: 500,
                     width: 50,
@@ -58,6 +70,23 @@ class _StreamScreenState extends State<StreamScreen> {
                                     itemBuilder: (context, index) {
                                       return Card(
                                         child: ListTile(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  content: TodoField(
+                                                    todoData:
+                                                        snapshot.data![index],
+                                                    onSubmitted: (todo) {
+                                                      updateTodo(todo);
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
                                           title: Text(
                                             snapshot.data![index].title,
                                           ),
@@ -69,9 +98,7 @@ class _StreamScreenState extends State<StreamScreen> {
                                           trailing: IconButton(
                                             icon: const Icon(Icons.delete),
                                             onPressed: () {
-                                              _controller.delete(
-                                                snapshot.data![index],
-                                              );
+                                              deleteTodo(snapshot.data![index]);
                                             },
                                           ),
                                         ),
@@ -104,12 +131,18 @@ class _StreamScreenState extends State<StreamScreen> {
                 child: FloatingActionButton(
                   child: const Icon(Icons.add),
                   onPressed: () {
-                    _controller.add(
-                      TodoEntities(
-                        id: 0,
-                        title: "this is title",
-                        completed: false,
-                      ),
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: TodoField(
+                            onSubmitted: (todo) {
+                              addTodo(todo);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
