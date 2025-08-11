@@ -19,9 +19,7 @@ class _StreamScreenState extends State<StreamScreen> {
   void initState() {
     super.initState();
     _controller = TodoController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.init();
-    });
+     _controller.init();
   }
 
   void addTodo(TodoEntities todoData) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:rxdart/rxdart.dart';
 
 import '../../domain/repository/todo_repository.dart';
 import '../../data/todo_repository_impl.dart';
@@ -9,50 +10,50 @@ enum Status { initial, loading, success, error }
 class TodoController {
   TodoController();
 
-  List<TodoEntities> todos = [];
-  final StreamController<Status> loadingStream =
-      StreamController<Status>.broadcast();
-  final StreamController<List<TodoEntities>> todoDataStream =
-      StreamController<List<TodoEntities>>.broadcast();
+  late BehaviorSubject<Status> _loadingBehaviorStream;
+  late BehaviorSubject<List<TodoEntities>> _todoBehaviorStream;
   late TodoRepository _todoRepository;
 
   void init() {
-    loadingStream.add(Status.initial);
-    todoDataStream.add([]);
-    _todoRepository=TodoRepositoryImpl();
+    _loadingBehaviorStream = BehaviorSubject<Status>.seeded(Status.initial);
+    _todoBehaviorStream = BehaviorSubject<List<TodoEntities>>.seeded([]);
+    _todoRepository = TodoRepositoryImpl();
     getTodos();
   }
 
-  Stream<Status> get loadingStateStream => loadingStream.stream;
-  Stream<List<TodoEntities>> get stream => todoDataStream.stream;
+  Stream<Status> get loadingStateStream => _loadingBehaviorStream.stream;
+  Stream<List<TodoEntities>> get stream => _todoBehaviorStream.stream;
 
   void getTodos() async {
-    loadingStream.add(Status.loading);
+    _loadingBehaviorStream.add(Status.loading);
     final response = await _todoRepository.getTodos();
-    loadingStream.add(Status.success);
+    _loadingBehaviorStream.add(Status.success);
     await Future.delayed(const Duration(seconds: 1));
-    todos = response;
-    todoDataStream.add(todos);
+    _todoBehaviorStream.add(response);
   }
 
   void add(TodoEntities todoData) async {
-    loadingStream.add(Status.loading);
-    todos.add(todoData);
-
+    _loadingBehaviorStream.add(Status.loading);
     await Future.delayed(const Duration(seconds: 2));
-    loadingStream.add(Status.success);
-    await Future.delayed(const Duration(seconds: 1));
-    todoDataStream.add(todos);
+    _loadingBehaviorStream.add(Status.success);
+    _todoBehaviorStream.add([...getData, todoData]);
   }
 
   void delete(TodoEntities todoData) {
-    todos.remove(todoData);
-    todoDataStream.add(todos);
+    _todoBehaviorStream.add(
+      getData.where((data) => data.id != todoData.id).toList(),
+    );
   }
 
   void update(TodoEntities todoData) {
-    int index = todos.indexWhere((element) => element.id == todoData.id);
-    todos[index] = todoData;
-    todoDataStream.add(todos);
+    final updatedData =
+        getData
+            .map((element) => element.id == todoData.id ? todoData : element)
+            .toList();
+    _todoBehaviorStream.add(updatedData);
+  }
+
+  List<TodoEntities> get getData {
+    return List.unmodifiable(_todoBehaviorStream.value);
   }
 }

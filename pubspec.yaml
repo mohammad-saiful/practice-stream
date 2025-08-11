@@ -42,6 +42,7 @@ dependencies:
   retrofit_generator: ^9.6.0
   json_annotation: ^4.9.0
   json_serializable: ^6.9.5
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:
