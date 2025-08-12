@@ -8,27 +8,30 @@ import '../../domain/entities/todo_entities.dart';
 enum Status { initial, loading, success, error }
 
 class TodoController {
-  TodoController();
-
-  late BehaviorSubject<Status> _loadingBehaviorStream;
-  late BehaviorSubject<List<TodoEntities>> _todoBehaviorStream;
+  final BehaviorSubject<Status> _loadingBehaviorStream =
+      BehaviorSubject<Status>.seeded(Status.initial);
+  final BehaviorSubject<List<TodoEntities>> _todoBehaviorStream =
+      BehaviorSubject<List<TodoEntities>>.seeded([]);
   late TodoRepository _todoRepository;
 
   void init() {
-    _loadingBehaviorStream = BehaviorSubject<Status>.seeded(Status.initial);
-    _todoBehaviorStream = BehaviorSubject<List<TodoEntities>>.seeded([]);
     _todoRepository = TodoRepositoryImpl();
     getTodos();
   }
 
+  void dispose() {
+    _loadingBehaviorStream.close();
+    _todoBehaviorStream.close();
+  }
+
   Stream<Status> get loadingStateStream => _loadingBehaviorStream.stream;
-  Stream<List<TodoEntities>> get stream => _todoBehaviorStream.stream;
+  Stream<List<TodoEntities>> get todoDataStream => _todoBehaviorStream.stream;
 
   void getTodos() async {
     _loadingBehaviorStream.add(Status.loading);
     final response = await _todoRepository.getTodos();
-    _loadingBehaviorStream.add(Status.success);
     await Future.delayed(const Duration(seconds: 1));
+    _loadingBehaviorStream.add(Status.success);
     _todoBehaviorStream.add(response);
   }
 

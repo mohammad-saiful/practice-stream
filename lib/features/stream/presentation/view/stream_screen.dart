@@ -22,6 +22,12 @@ class _StreamScreenState extends State<StreamScreen> {
      _controller.init();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void addTodo(TodoEntities todoData) {
     _controller.add(todoData);
   }
@@ -56,7 +62,7 @@ class _StreamScreenState extends State<StreamScreen> {
                   );
                 } else if (snapshot.data == Status.success) {
                   return StreamBuilder<List<TodoEntities>>(
-                    stream: _controller.stream,
+                    stream: _controller.todoDataStream,
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         return Expanded(

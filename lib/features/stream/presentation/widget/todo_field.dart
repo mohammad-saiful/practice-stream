@@ -29,6 +29,12 @@ class _TodoFieldState extends State<TodoField> {
   }
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 300,
@@ -71,7 +77,7 @@ class _TodoFieldState extends State<TodoField> {
                   widget.onSubmitted(todo);
                 }
               },
-              child:  Text(_submitText),
+              child: Text(_submitText),
             ),
           ],
         ),
