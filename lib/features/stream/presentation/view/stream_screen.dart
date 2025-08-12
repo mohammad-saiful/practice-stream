@@ -51,10 +51,10 @@ class _StreamScreenState extends State<StreamScreen> {
             listener: (context, state) {
               if (state is TodoLoadedState) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Center(
                       child: Text(
-                        'Data Updated',
+                        state.successMessage,
                         style: TextStyle(color: Colors.green),
                       ),
                     ),

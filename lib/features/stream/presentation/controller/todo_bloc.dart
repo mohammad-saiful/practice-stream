@@ -6,18 +6,21 @@ import '../../domain/entities/todo_entities.dart';
 abstract class TodoEvent {}
 
 class AddTodoEvent extends TodoEvent {
-  final TodoEntities todoEntities;
   AddTodoEvent(this.todoEntities);
+
+  final TodoEntities todoEntities;
 }
 
 class UpdateTodoEvent extends TodoEvent {
-  final TodoEntities todoEntities;
   UpdateTodoEvent(this.todoEntities);
+
+  final TodoEntities todoEntities;
 }
 
 class DeleteTodoEvent extends TodoEvent {
-  final TodoEntities todoEntities;
   DeleteTodoEvent(this.todoEntities);
+
+  final TodoEntities todoEntities;
 }
 
 class GetTodosEvent extends TodoEvent {}
@@ -29,8 +32,10 @@ class TodoInitialState extends TodoState {}
 class TodoLoadingState extends TodoState {}
 
 class TodoLoadedState extends TodoState {
+  TodoLoadedState(this.todoListEntities, this.successMessage);
+
   final List<TodoEntities> todoListEntities;
-  TodoLoadedState(this.todoListEntities);
+  final String successMessage;
 }
 
 class TodoErrorState extends TodoState {
@@ -46,7 +51,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       try {
         final response = await _todoRepository.getTodos();
         _todoListEntities = response;
-        emit(TodoLoadedState(_todoListEntities));
+        emit(TodoLoadedState(_todoListEntities, 'Todos fetched successfully'));
       } catch (e) {
         emit(TodoErrorState(e.toString()));
       }
@@ -56,8 +61,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       emit(TodoLoadingState());
       await Future.delayed(const Duration(seconds: 1));
       try {
-         _todoListEntities.add(event.todoEntities);
-        emit(TodoLoadedState(_todoListEntities));
+        _todoListEntities.add(event.todoEntities);
+        emit(TodoLoadedState(_todoListEntities, 'Todo added successfully'));
       } catch (e) {
         emit(TodoErrorState('Failed to add todo: $e'));
       }
@@ -75,7 +80,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
               return todo;
             }).toList();
         _todoListEntities = updatedTodos;
-        emit(TodoLoadedState(_todoListEntities));
+        emit(TodoLoadedState(_todoListEntities, 'Todo updated successfully'));
       } catch (e) {
         emit(TodoErrorState('Failed to update todo: $e'));
       }
@@ -90,7 +95,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
                 .where((todo) => todo.id != event.todoEntities.id)
                 .toList();
         _todoListEntities = updatedTodos;
-        emit(TodoLoadedState(_todoListEntities));
+        emit(TodoLoadedState(_todoListEntities, 'Todo deleted successfully'));
       } catch (e) {
         emit(TodoErrorState('Failed to delete todo: $e'));
       }
