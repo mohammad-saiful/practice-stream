@@ -9,6 +9,7 @@ class TodoControllerStream {
 
       if (_count == 21) {
         timer.cancel();
+        close();
       }
     });
   }
