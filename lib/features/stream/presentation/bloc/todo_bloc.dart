@@ -1,47 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:practice_stream/features/stream/domain/repository/todo_repository.dart';
+import 'package:practice_stream/features/stream/presentation/bloc/todo_event.dart';
+import 'package:practice_stream/features/stream/presentation/bloc/todo_state.dart';
 
 import '../../domain/entities/todo_entities.dart';
-
-abstract class TodoEvent {}
-
-class AddTodoEvent extends TodoEvent {
-  AddTodoEvent(this.todoEntities);
-
-  final TodoEntities todoEntities;
-}
-
-class UpdateTodoEvent extends TodoEvent {
-  UpdateTodoEvent(this.todoEntities);
-
-  final TodoEntities todoEntities;
-}
-
-class DeleteTodoEvent extends TodoEvent {
-  DeleteTodoEvent(this.todoEntities);
-
-  final TodoEntities todoEntities;
-}
-
-class GetTodosEvent extends TodoEvent {}
-
-abstract class TodoState {}
-
-class TodoInitialState extends TodoState {}
-
-class TodoLoadingState extends TodoState {}
-
-class TodoLoadedState extends TodoState {
-  TodoLoadedState(this.todoListEntities, this.successMessage);
-
-  final List<TodoEntities> todoListEntities;
-  final String successMessage;
-}
-
-class TodoErrorState extends TodoState {
-  final String message;
-  TodoErrorState(this.message);
-}
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   TodoBloc(this._todoRepository) : super(TodoInitialState()) {

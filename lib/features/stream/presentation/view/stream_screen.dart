@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:practice_stream/features/stream/data/todo_repository_impl.dart';
 
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
 import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
 
-import '../controller/todo_bloc.dart';
+import '../bloc/todo_bloc.dart';
+import '../bloc/todo_event.dart';
+import '../bloc/todo_state.dart';
 
 class StreamScreen extends StatefulWidget {
   const StreamScreen({super.key});
@@ -15,28 +18,30 @@ class StreamScreen extends StatefulWidget {
 
 class _StreamScreenState extends State<StreamScreen> {
   List<TodoEntities> todos = [];
+  final _todoBlock = TodoBloc(TodoRepositoryImpl());
 
   @override
   void initState() {
     super.initState();
-    context.read<TodoBloc>().add(GetTodosEvent());
+    _todoBlock.add(GetTodosEvent());
   }
 
   @override
   void dispose() {
     super.dispose();
+    _todoBlock.close();
   }
 
   void addTodo(TodoEntities todoData) {
-    context.read<TodoBloc>().add(AddTodoEvent(todoData));
+    _todoBlock.add(AddTodoEvent(todoData));
   }
 
   void updateTodo(TodoEntities todoData) {
-    context.read<TodoBloc>().add(UpdateTodoEvent(todoData));
+    _todoBlock.add(UpdateTodoEvent(todoData));
   }
 
   void deleteTodo(TodoEntities todoData) {
-    context.read<TodoBloc>().add(DeleteTodoEvent(todoData));
+    _todoBlock.add(DeleteTodoEvent(todoData));
   }
 
   @override
@@ -48,6 +53,7 @@ class _StreamScreenState extends State<StreamScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           BlocListener<TodoBloc, TodoState>(
+            bloc: _todoBlock,
             listener: (context, state) {
               if (state is TodoLoadedState) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -65,6 +71,7 @@ class _StreamScreenState extends State<StreamScreen> {
             child: Container(),
           ),
           BlocBuilder<TodoBloc, TodoState>(
+            bloc: _todoBlock,
             builder: (context, state) {
               if (state is TodoInitialState) {
                 return const Text('No Data');
