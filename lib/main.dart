@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:practice_stream/core/di/setup_dependencies.dart';
 
 import 'features/stream/presentation/view/stream_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SetupDependencies.init();
   runApp(const MyApp());
 }
 

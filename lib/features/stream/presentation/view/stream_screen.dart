@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:practice_stream/features/stream/data/todo_repository_impl.dart';
+import 'package:practice_stream/core/di/setup_dependencies.dart';
 
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
 import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
 
-import '../bloc/todo_state.dart';
 import '../cubit/todo_cubit.dart';
 
 class StreamScreen extends StatefulWidget {
@@ -17,7 +16,7 @@ class StreamScreen extends StatefulWidget {
 
 class _StreamScreenState extends State<StreamScreen> {
   List<TodoEntities> todos = [];
-  final _todoCubit = TodoCubit(TodoRepositoryImpl());
+  final _todoCubit = getIt<TodoCubit>();
 
   @override
   void initState() {
@@ -54,12 +53,12 @@ class _StreamScreenState extends State<StreamScreen> {
           BlocListener<TodoCubit, TodoState>(
             bloc: _todoCubit,
             listener: (context, state) {
-              if (state is TodoLoadedState) {
+              if (state.status.isSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Center(
                       child: Text(
-                        state.successMessage,
+                        state.message!,
                         style: TextStyle(color: Colors.green),
                       ),
                     ),
@@ -72,18 +71,18 @@ class _StreamScreenState extends State<StreamScreen> {
           BlocBuilder<TodoCubit, TodoState>(
             bloc: _todoCubit,
             builder: (context, state) {
-              if (state is TodoInitialState) {
+              if (state.status.isInitial) {
                 return const Text('No Data');
-              } else if (state is TodoLoadingState) {
+              } else if (state.status.isLoading) {
                 return SizedBox(
                   height: 500,
                   width: 50,
                   child: Center(child: const CircularProgressIndicator()),
                 );
-              } else if (state is TodoLoadedState) {
+              } else if (state.status.isSuccess) {
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: state.todoListEntities.length,
+                    itemCount: state.todos!.length,
                     itemBuilder: (context, index) {
                       return Card(
                         child: ListTile(
@@ -93,7 +92,7 @@ class _StreamScreenState extends State<StreamScreen> {
                               builder: (context) {
                                 return AlertDialog(
                                   content: TodoField(
-                                    todoData: state.todoListEntities[index],
+                                    todoData: state.todos![index],
                                     onSubmitted: (todo) {
                                       updateTodo(todo);
                                       Navigator.pop(context);
@@ -103,15 +102,15 @@ class _StreamScreenState extends State<StreamScreen> {
                               },
                             );
                           },
-                          title: Text(state.todoListEntities[index].title),
+                          title: Text(state.todos![index].title),
                           leading: Checkbox(
-                            value: state.todoListEntities[index].completed,
+                            value: state.todos![index].completed,
                             onChanged: (value) {},
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () {
-                              deleteTodo(state.todoListEntities[index]);
+                              deleteTodo(state.todos![index]);
                             },
                           ),
                         ),
@@ -119,8 +118,8 @@ class _StreamScreenState extends State<StreamScreen> {
                     },
                   ),
                 );
-              } else if (state is TodoErrorState) {
-                return Text(state.message);
+              } else if (state.status.isError) {
+                return Text(state.message!);
               } else {
                 return const SizedBox.shrink();
               }
