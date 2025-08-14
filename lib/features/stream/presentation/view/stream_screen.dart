@@ -5,9 +5,8 @@ import 'package:practice_stream/features/stream/data/todo_repository_impl.dart';
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
 import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
 
-import '../bloc/todo_bloc.dart';
-import '../bloc/todo_event.dart';
 import '../bloc/todo_state.dart';
+import '../cubit/todo_cubit.dart';
 
 class StreamScreen extends StatefulWidget {
   const StreamScreen({super.key});
@@ -18,30 +17,30 @@ class StreamScreen extends StatefulWidget {
 
 class _StreamScreenState extends State<StreamScreen> {
   List<TodoEntities> todos = [];
-  final _todoBlock = TodoBloc(TodoRepositoryImpl());
+  final _todoCubit = TodoCubit(TodoRepositoryImpl());
 
   @override
   void initState() {
     super.initState();
-    _todoBlock.add(GetTodosEvent());
+    _todoCubit.fetchTodos();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _todoBlock.close();
+    _todoCubit.close();
   }
 
   void addTodo(TodoEntities todoData) {
-    _todoBlock.add(AddTodoEvent(todoData));
+    _todoCubit.addTodo(todoData);
   }
 
   void updateTodo(TodoEntities todoData) {
-    _todoBlock.add(UpdateTodoEvent(todoData));
+    _todoCubit.updateTodo(todoData);
   }
 
   void deleteTodo(TodoEntities todoData) {
-    _todoBlock.add(DeleteTodoEvent(todoData));
+    _todoCubit.deleteTodo(todoData);
   }
 
   @override
@@ -52,8 +51,8 @@ class _StreamScreenState extends State<StreamScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          BlocListener<TodoBloc, TodoState>(
-            bloc: _todoBlock,
+          BlocListener<TodoCubit, TodoState>(
+            bloc: _todoCubit,
             listener: (context, state) {
               if (state is TodoLoadedState) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -70,8 +69,8 @@ class _StreamScreenState extends State<StreamScreen> {
             },
             child: Container(),
           ),
-          BlocBuilder<TodoBloc, TodoState>(
-            bloc: _todoBlock,
+          BlocBuilder<TodoCubit, TodoState>(
+            bloc: _todoCubit,
             builder: (context, state) {
               if (state is TodoInitialState) {
                 return const Text('No Data');
