@@ -2,20 +2,20 @@ import 'dart:async';
 import 'package:rxdart/rxdart.dart';
 
 import '../../domain/repository/todo_repository.dart';
-import '../../data/todo_repository_impl.dart';
 import '../../domain/entities/todo_entities.dart';
 
 enum Status { initial, loading, success, error }
 
 class TodoController {
+  TodoController(this._todoRepository);
+
   final BehaviorSubject<Status> _loadingBehaviorStream =
       BehaviorSubject<Status>.seeded(Status.initial);
   final BehaviorSubject<List<TodoEntities>> _todoBehaviorStream =
       BehaviorSubject<List<TodoEntities>>.seeded([]);
-  late TodoRepository _todoRepository;
+  final TodoRepository _todoRepository;
 
   void init() {
-    _todoRepository = TodoRepositoryImpl();
     getTodos();
   }
 
