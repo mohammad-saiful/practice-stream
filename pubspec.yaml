@@ -43,6 +43,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   freezed_annotation: ^3.1.0
   get_it: ^8.2.0
+  injectable: ^2.5.1
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +53,7 @@ dev_dependencies:
   json_serializable: ^6.9.5
   riverpod_generator: ^2.6.1
   freezed: ^3.0.6
+  injectable_generator: ^2.5.1
 
 
   # The "flutter_lints" package below contains a set of recommended lints to

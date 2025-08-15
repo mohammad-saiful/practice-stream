@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:practice_stream/core/di/setup_dependencies.dart';
+import 'package:practice_stream/core/di/dependency_inject.config.dart';
+import 'package:practice_stream/core/di/dependency_inject.dart';
 
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
 import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
@@ -16,18 +17,23 @@ class StreamScreen extends StatefulWidget {
 
 class _StreamScreenState extends State<StreamScreen> {
   List<TodoEntities> todos = [];
-  final _todoCubit = getIt<TodoCubit>();
+  late final TodoCubit _todoCubit;
 
   @override
   void initState() {
     super.initState();
+
+    getIt.initCubitScope();
+    _todoCubit = getIt<TodoCubit>();
+
     _todoCubit.fetchTodos();
   }
 
   @override
   void dispose() {
-    super.dispose();
     _todoCubit.close();
+    getIt.popScope();
+    super.dispose();
   }
 
   void addTodo(TodoEntities todoData) {

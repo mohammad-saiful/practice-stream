@@ -167,3 +167,4 @@ app.*.symbols
 # Generated files
 **/*.g.dart
 **/*.freezed.dart
+**/*.config.dart
