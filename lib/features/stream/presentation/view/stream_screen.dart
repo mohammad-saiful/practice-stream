@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:practice_stream/features/stream/data/todo_repository_impl.dart';
 
 import 'package:practice_stream/features/stream/domain/entities/todo_entities.dart';
-import 'package:practice_stream/features/stream/presentation/controller/todo_controller.dart';
 import 'package:practice_stream/features/stream/presentation/widget/todo_field.dart';
+
+import '../bloc/todo_bloc.dart';
+import '../bloc/todo_event.dart';
+import '../bloc/todo_state.dart';
 
 class StreamScreen extends StatefulWidget {
   const StreamScreen({super.key});
@@ -13,31 +18,30 @@ class StreamScreen extends StatefulWidget {
 
 class _StreamScreenState extends State<StreamScreen> {
   List<TodoEntities> todos = [];
-  late TodoController _controller;
+  final _todoBlock = TodoBloc(TodoRepositoryImpl());
 
   @override
   void initState() {
     super.initState();
-    _controller = TodoController();
-     _controller.init();
+    _todoBlock.add(GetTodosEvent());
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _todoBlock.close();
   }
 
   void addTodo(TodoEntities todoData) {
-    _controller.add(todoData);
+    _todoBlock.add(AddTodoEvent(todoData));
   }
 
   void updateTodo(TodoEntities todoData) {
-    _controller.update(todoData);
+    _todoBlock.add(UpdateTodoEvent(todoData));
   }
 
   void deleteTodo(TodoEntities todoData) {
-    _controller.delete(todoData);
+    _todoBlock.add(DeleteTodoEvent(todoData));
   }
 
   @override
@@ -48,82 +52,78 @@ class _StreamScreenState extends State<StreamScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          StreamBuilder<Status>(
-            stream: _controller.loadingStateStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data == Status.initial) {
-                  return const Text('No Data');
-                } else if (snapshot.data == Status.loading) {
-                  return SizedBox(
-                    height: 500,
-                    width: 50,
-                    child: Center(child: const CircularProgressIndicator()),
-                  );
-                } else if (snapshot.data == Status.success) {
-                  return StreamBuilder<List<TodoEntities>>(
-                    stream: _controller.todoDataStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Expanded(
-                          child:
-                              snapshot.data!.isEmpty
-                                  ? const Center(child: Text('No Data Found'))
-                                  : ListView.builder(
-                                    itemCount: snapshot.data!.length,
-                                    itemBuilder: (context, index) {
-                                      return Card(
-                                        child: ListTile(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  content: TodoField(
-                                                    todoData:
-                                                        snapshot.data![index],
-                                                    onSubmitted: (todo) {
-                                                      updateTodo(todo);
-                                                      Navigator.pop(context);
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          },
-                                          title: Text(
-                                            snapshot.data![index].title,
-                                          ),
-                                          leading: Checkbox(
-                                            value:
-                                                snapshot.data![index].completed,
-                                            onChanged: (value) {},
-                                          ),
-                                          trailing: IconButton(
-                                            icon: const Icon(Icons.delete),
-                                            onPressed: () {
-                                              deleteTodo(snapshot.data![index]);
-                                            },
-                                          ),
-                                        ),
-                                      );
+          BlocListener<TodoBloc, TodoState>(
+            bloc: _todoBlock,
+            listener: (context, state) {
+              if (state is TodoLoadedState) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Center(
+                      child: Text(
+                        state.successMessage,
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Container(),
+          ),
+          BlocBuilder<TodoBloc, TodoState>(
+            bloc: _todoBlock,
+            builder: (context, state) {
+              if (state is TodoInitialState) {
+                return const Text('No Data');
+              } else if (state is TodoLoadingState) {
+                return SizedBox(
+                  height: 500,
+                  width: 50,
+                  child: Center(child: const CircularProgressIndicator()),
+                );
+              } else if (state is TodoLoadedState) {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: state.todoListEntities.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        child: ListTile(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  content: TodoField(
+                                    todoData: state.todoListEntities[index],
+                                    onSubmitted: (todo) {
+                                      updateTodo(todo);
+                                      Navigator.pop(context);
                                     },
                                   ),
-                        );
-                      } else {
-                        return const SizedBox.shrink();
-                      }
+                                );
+                              },
+                            );
+                          },
+                          title: Text(state.todoListEntities[index].title),
+                          leading: Checkbox(
+                            value: state.todoListEntities[index].completed,
+                            onChanged: (value) {},
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              deleteTodo(state.todoListEntities[index]);
+                            },
+                          ),
+                        ),
+                      );
                     },
-                  );
-                } else if (snapshot.data == Status.error) {
-                  return const Text('Error');
-                } else {
-                  return const SizedBox.shrink();
-                }
-              } else if (snapshot.hasError) {
-                return Text(snapshot.error.toString());
+                  ),
+                );
+              } else if (state is TodoErrorState) {
+                return Text(state.message);
               } else {
-                return const Text('No Data');
+                return const SizedBox.shrink();
               }
             },
           ),
